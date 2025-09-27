@@ -8,8 +8,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test-db": "tsx src/test_db.ts",
-    "exemplo": "tsx src/exemplo_uso.ts",
+    "exemplo-load": "tsx src/examples/load_news_example.ts",
+    "app": "tsx src/app.ts",
     "dev": "tsx --watch src/agente.ts",
     "build": "tsc",
     "start": "node dist/agente.js"
