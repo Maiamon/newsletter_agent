@@ -1,163 +1,116 @@
-import { createLoadNewsFromJsonUseCase } from './use-cases/loadNewsFromSource';
+import { JsonNewsDataRepository } from './repositories/json/json_news_data_repository';
+import { LoadNewsFromSourceUseCase } from './use-cases/loadNewsFromSource';
+import { CurateNewsUseCase } from './use-cases/curateNews';
 import { DBRepository } from './repositories/db/db_repository';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Aplicação principal para processar notícias do JSON e inserir no banco
  */
 class NewsletterApp {
-  private dbRepository: DBRepository;
-
-  constructor() {
-    this.dbRepository = new DBRepository();
-  }
-  
-  /**
-   * Executa o processo completo de carregamento e inserção de notícias
-   */
   async run(): Promise<void> {
     console.log('🚀 === Newsletter Agent - Iniciando Aplicação ===\n');
 
     try {
-      // 1. Conectar ao banco de dados
+      // 1. Configurar repositórios e use cases
+      const dbRepository = new DBRepository();
+      const jsonFilePath = path.join(__dirname, 'data', 'source-data.json');
+      const newsDataRepository = new JsonNewsDataRepository(jsonFilePath);
+      const loadNewsUseCase = new LoadNewsFromSourceUseCase(newsDataRepository);
+      const curateNewsUseCase = new CurateNewsUseCase();
+
+      // 2. Conectar ao banco de dados
       console.log('🔌 Conectando ao banco de dados...');
-      const connected = await this.dbRepository.testConnection();
+      const connected = await dbRepository.testConnection();
       
       if (!connected) {
         console.error('❌ Falha na conexão com o banco de dados');
-        console.error('   Certifique-se de que o PostgreSQL está rodando');
         process.exit(1);
       }
       
       console.log('✅ Conexão com banco estabelecida\n');
 
-      // 2. Carregar notícias do arquivo JSON
+      // 3. Carregar notícias do arquivo JSON
       console.log('📁 Carregando notícias do arquivo source-data.json...');
-      const loadNewsUseCase = createLoadNewsFromJsonUseCase();
       const loadResult = await loadNewsUseCase.execute();
-
-      // Verificar se houve erros no carregamento
-      if (loadResult.errors.length > 0) {
-        console.warn('⚠️ Erros durante carregamento:');
-        loadResult.errors.forEach(error => console.warn(`   - ${error}`));
-      }
 
       if (loadResult.news.length === 0) {
         console.warn('⚠️ Nenhuma notícia foi carregada do arquivo');
         return;
       }
 
-      console.log(`✅ ${loadResult.news.length} notícias carregadas do arquivo\n`);
+      console.log(`✅ ${loadResult.totalLoaded} notícias carregadas do arquivo\n`);
 
-      // 3. Inserir notícias no banco de dados
-      console.log('💾 Inserindo notícias no banco de dados...');
-      const insertResults = await this.insertMultipleNews(loadResult.news);
+      // 4. Curar notícias (filtrar por qualidade)
+      console.log('🎯 Iniciando curadoria das notícias...');
+      const curationResult = await curateNewsUseCase.execute(loadResult.news);
 
-      // Contar sucessos e falhas
-      const successCount = insertResults.filter((result: any) => result !== null).length;
-      const failureCount = insertResults.length - successCount;
+      if (curationResult.totalApproved === 0) {
+        console.warn('⚠️ Nenhuma notícia foi aprovada na curadoria');
+        console.log(`📊 Motivos das rejeições:`);
+        curationResult.rejectedNews.forEach(rejected => {
+          console.log(`  - "${rejected.news.title}": ${rejected.reasons.join(', ')}`);
+        });
+        return;
+      }
 
+      console.log(`✅ ${curationResult.totalApproved} notícias aprovadas na curadoria\n`);
+
+      // 5. Inserir notícias aprovadas no banco de dados
+      console.log('💾 Inserindo notícias aprovadas no banco de dados...');
+      const insertResults = await this.insertMultipleNews(dbRepository, curationResult.approvedNews);
+
+      // 6. Relatório final
+      const successCount = insertResults.filter(result => result !== null).length;
       console.log(`\n📊 === Relatório Final ===`);
-      console.log(`📁 Arquivo processado: ${loadResult.metadata.sourceInfo.location}`);
-      console.log(`📏 Tamanho do arquivo: ${this.formatBytes(loadResult.metadata.sourceInfo.size || 0)}`);
-      console.log(`⏱️ Tempo de carregamento: ${loadResult.metadata.executionTimeMs}ms`);
-      console.log(`🔍 Total encontrado no arquivo: ${loadResult.metadata.totalFound}`);
-      console.log(`📰 Total carregado: ${loadResult.metadata.totalLoaded}`);
-      console.log(`✅ Inseridas com sucesso: ${successCount}`);
+      console.log(`📁 Total carregado do arquivo: ${loadResult.totalLoaded}`);
+      console.log(`🎯 Total processado na curadoria: ${curationResult.totalProcessed}`);
+      console.log(`✅ Total aprovado na curadoria: ${curationResult.totalApproved}`);
+      console.log(`❌ Total rejeitado na curadoria: ${curationResult.totalRejected}`);
+      console.log(`💾 Inseridas com sucesso no banco: ${successCount}`);
       
-      if (failureCount > 0) {
-        console.log(`❌ Falhas na inserção: ${failureCount}`);
+      if (curationResult.totalRejected > 0) {
+        console.log(`\n📋 Motivos das rejeições:`);
+        curationResult.rejectedNews.forEach(rejected => {
+          console.log(`  - "${rejected.news.title.substring(0, 50)}...": ${rejected.reasons.join(', ')}`);
+        });
       }
       
       console.log(`\n🎉 Processamento concluído com sucesso!`);
 
-      // 4. Mostrar algumas estatísticas do banco
-      await this.showDatabaseStats();
+      await dbRepository.close();
 
     } catch (error) {
-      console.error('❌ Erro fatal durante execução:', error);
+      console.error('❌ Erro durante execução:', error);
       process.exit(1);
-    } finally {
-      // Fechar conexão com o banco
-      await this.dbRepository.close();
-      console.log('\n👋 Aplicação finalizada');
     }
   }
 
   /**
    * Insere múltiplas notícias no banco
    */
-  private async insertMultipleNews(newsArray: any[]): Promise<(any | null)[]> {
-    console.log(`📰 Salvando ${newsArray.length} notícias...`);
-    
+  private async insertMultipleNews(dbRepository: DBRepository, newsArray: any[]): Promise<(any | null)[]> {
     const results: (any | null)[] = [];
     
     for (const news of newsArray) {
       try {
-        const result = await this.dbRepository.insertNews(news);
+        const result = await dbRepository.insertNews(news);
         results.push(result);
         
         if (result) {
           console.log(`✅ Notícia salva: "${result.title}"`);
         }
-        
-        // Pequena pausa para não sobrecarregar o banco
-        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
         console.error(`❌ Erro ao salvar "${news.title}":`, error);
         results.push(null);
       }
     }
-
-    const successCount = results.filter(r => r !== null).length;
-    console.log(`✅ ${successCount}/${newsArray.length} notícias salvas com sucesso`);
     
     return results;
-  }
-
-  /**
-   * Mostra estatísticas do banco de dados
-   */
-  private async showDatabaseStats(): Promise<void> {
-    try {
-      console.log('\n📈 === Estatísticas do Banco ===');
-      
-      const allNews = await this.dbRepository.getAllNews();
-      const allCategories = await this.dbRepository.getAllCategories();
-      
-      console.log(`📰 Total de notícias no banco: ${allNews.length}`);
-      console.log(`🏷️ Total de categorias: ${allCategories.length}`);
-      
-      if (allCategories.length > 0) {
-        console.log(`📋 Categorias disponíveis: ${allCategories.map((cat: any) => cat.name).join(', ')}`);
-      }
-
-      // Mostrar últimas notícias inseridas
-      if (allNews.length > 0) {
-        console.log('\n📰 Últimas notícias no banco:');
-        allNews.slice(0, 3).forEach((news: any, index: number) => {
-          console.log(`${index + 1}. ${news.title}`);
-          console.log(`   📅 ${new Date(news.published_at).toLocaleString('pt-BR')}`);
-          console.log(`   🏷️ ${news.categories.map((c: any) => c.name).join(', ')}`);
-        });
-      }
-
-    } catch (error) {
-      console.warn('⚠️ Não foi possível obter estatísticas do banco:', error);
-    }
-  }
-
-  /**
-   * Formata bytes em formato legível
-   */
-  private formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
 
@@ -169,12 +122,10 @@ async function main() {
   await app.run();
 }
 
-// Executar aplicação se chamada diretamente
-if (require.main === module) {
-  main().catch((error) => {
-    console.error('💥 Erro não tratado:', error);
-    process.exit(1);
-  });
-}
+// Executar aplicação
+main().catch((error) => {
+  console.error('💥 Erro não tratado:', error);
+  process.exit(1);
+});
 
 export { NewsletterApp, main };

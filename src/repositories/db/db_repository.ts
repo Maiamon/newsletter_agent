@@ -1,4 +1,4 @@
-import { NewsRepository, NewsModel, CategoryModel, NewsWithCategoriesModel } from "../news_repository";
+import { NewsRepository, CategoryModel, NewsWithCategoriesModel, NewsModel } from "../news_repository";
 import { News } from "../../entities/news_entity";
 import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
@@ -53,19 +53,17 @@ export class DBRepository implements NewsRepository {
     try {
       await client.query('BEGIN');
 
-      // Inserir notícia com novos campos
+      // Inserir notícia usando campos do schema Prisma
       const newsQuery = `
-        INSERT INTO news (title, content, source, relevance_score, language, created_at)
-        VALUES ($1, $2, $3, $4, $5, NOW())
-        RETURNING id, title, content, source, relevance_score, language, created_at
+        INSERT INTO news (title, content, source, "publishedAt")
+        VALUES ($1, $2, $3, NOW())
+        RETURNING id, title, content, source, "publishedAt"
       `;
       
       const newsResult = await client.query(newsQuery, [
         newsData.title,
         newsData.content,
-        newsData.source,
-        newsData.relevanceScore,
-        newsData.language
+        newsData.source
       ]);
 
       const insertedNews = newsResult.rows[0];
@@ -78,10 +76,10 @@ export class DBRepository implements NewsRepository {
           // Buscar ou criar categoria
           const categoryId = await this.getOrCreateCategory(client, categoryName);
           
-          // Associar categoria à notícia (tabela many-to-many)
+          // Associar categoria à notícia (tabela many-to-many do Prisma)
           await client.query(
-            'INSERT INTO news_categories (news_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-            [newsId, categoryId]
+            'INSERT INTO "_CategoryToNews" ("A", "B") VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [categoryId, newsId]
           );
         }
         console.log(`🏷️ Categorias associadas à notícia ${newsId}`);
@@ -89,7 +87,7 @@ export class DBRepository implements NewsRepository {
 
       await client.query('COMMIT');
 
-      // Retornar objeto News completo
+      // Retornar objeto News simplificado
       return {
         title: insertedNews.title,
         content: insertedNews.content,
@@ -152,19 +150,21 @@ export class DBRepository implements NewsRepository {
           n.title,
           n.content,
           n.source,
-          n.relevance_score,
-          n.language,
-          n.created_at as published_at,
-          ARRAY_AGG(
-            CASE WHEN c.id IS NOT NULL 
-            THEN json_build_object('id', c.id, 'name', c.name)
-            ELSE NULL END
-          ) FILTER (WHERE c.id IS NOT NULL) as categories
+          n.summary,
+          n."publishedAt" as published_at,
+          COALESCE(
+            ARRAY_AGG(
+              CASE WHEN c.id IS NOT NULL 
+              THEN json_build_object('id', c.id, 'name', c.name)
+              ELSE NULL END
+            ) FILTER (WHERE c.id IS NOT NULL),
+            '{}'::json[]
+          ) as categories
         FROM news n
-        LEFT JOIN news_categories nc ON n.id = nc.news_id
-        LEFT JOIN categories c ON nc.category_id = c.id
-        GROUP BY n.id, n.title, n.content, n.source, n.relevance_score, n.language, n.created_at
-        ORDER BY n.created_at DESC
+        LEFT JOIN "_CategoryToNews" cn ON n.id = cn."B"
+        LEFT JOIN categories c ON cn."A" = c.id
+        GROUP BY n.id, n.title, n.content, n.source, n.summary, n."publishedAt"
+        ORDER BY n."publishedAt" DESC
       `;
 
       const result = await this.pool.query(query);
@@ -173,9 +173,8 @@ export class DBRepository implements NewsRepository {
         title: row.title,
         content: row.content,
         source: row.source,
+        summary: row.summary,
         published_at: row.published_at,
-        relevanceScore: row.relevance_score,
-        language: row.language,
         categories: row.categories || []
       }));
 
@@ -200,6 +199,8 @@ export class DBRepository implements NewsRepository {
       return [];
     }
   }
+
+
 
   private async getOrCreateCategory(client: PoolClient, categoryName: string): Promise<number> {
     // Tentar buscar categoria existente
