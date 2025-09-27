@@ -1,4 +1,4 @@
-import { createLoadNewsFromJsonUseCase } from './use-cases/loadNewsFromJson';
+import { createLoadNewsFromJsonUseCase } from './use-cases/loadNewsFromSource';
 import { DBRepository } from './repositories/db/db_repository';
 import path from 'path';
 
