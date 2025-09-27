@@ -1,0 +1,84 @@
+{
+  "news": [
+    {
+      "title": "Nova tecnologia de IA revoluciona diagnósticos médicos",
+      "source": "TechNews",
+      "content": "Uma equipe de pesquisadores da Universidade de Stanford desenvolveu um novo algoritmo de inteligência artificial capaz de detectar doenças raras com uma precisão de 95%. A tecnologia utiliza análise de imagens médicas e dados genômicos para identificar padrões que frequentemente passam despercebidos pelos métodos tradicionais. O sistema já foi testado em mais de 10.000 casos e mostrou resultados promissores, especialmente em doenças neurológicas raras. Os pesquisadores esperam que a tecnologia seja implementada em hospitais dentro dos próximos dois anos.",
+      "categories": ["tech", "health", "ai"],
+      "relevanceScore": 0.5,
+      "language": "ptBR"
+    },
+    {
+      "title": "Mercado de criptomoedas registra alta de 15% após aprovação de nova regulamentação",
+      "source": "CryptoDaily",
+      "content": "O mercado de criptomoedas experimentou uma alta significativa de 15% nas últimas 24 horas, após a União Europeia aprovar um novo framework regulatório para ativos digitais. O Bitcoin atingiu US$ 68.000, seu maior valor em seis meses, enquanto o Ethereum subiu para US$ 4.200. A nova regulamentação, conhecida como MiCA 2.0, oferece maior clareza jurídica para exchanges e investidores institucionais. Especialistas acreditam que essa regulamentação pode atrair mais investimento institucional para o setor.",
+      "categories": ["finance", "crypto", "regulation"],
+      "relevanceScore": 0.7,
+      "language": "ptBR"
+    },
+    {
+      "title": "Startup brasileira desenvolve solução sustentável para reciclagem de plástico",
+      "source": "EcoNews Brasil",
+      "content": "A startup GreenCycle, sediada em São Paulo, desenvolveu uma tecnologia revolucionária que converte resíduos plásticos em biocombustível. O processo, chamado de pirólise catalítica avançada, consegue transformar 1 tonelada de plástico em 800 litros de combustível com emissões 70% menores que combustíveis fósseis. A empresa já recebeu investimento de R$ 50 milhões e planeja construir sua primeira planta industrial em 2026. O projeto pode processar todos os tipos de plástico, incluindo aqueles considerados não recicláveis pelos métodos convencionais.",
+      "categories": ["sustainability", "startup", "environment", "brazil"],
+      "relevanceScore": 0.8,
+      "language": "ptBR"
+    },
+    {
+      "title": "NASA anuncia descoberta de água em lua de Júpiter",
+      "source": "Space Science Daily",
+      "content": "A NASA anunciou hoje a descoberta de evidências conclusivas de um vasto oceano subterrâneo na lua Europa, de Júpiter. Os dados coletados pela sonda Juno revelam que o oceano contém mais água que todos os oceanos da Terra combinados. As análises espectrográficas também detectaram compostos orgânicos complexos na superfície gelada da lua. Esta descoberta é considerada um marco na busca por vida extraterrestre, já que Europa possui todas as condições necessárias para sustentar formas de vida microscópicas. Uma missão dedicada está planejada para 2030.",
+      "categories": ["space", "science", "discovery"],
+      "relevanceScore": 0.2,
+      "language": "EN"
+    },
+    {
+      "title": "Novo tratamento para Alzheimer mostra resultados promissores em testes clínicos",
+      "source": "Medical Journal",
+      "content": "Um novo medicamento experimental para o tratamento da doença de Alzheimer mostrou resultados extraordinários em testes de fase 3. O fármaco, desenvolvido pela farmacêutica BioNeuro, conseguiu reverter sintomas cognitivos em 60% dos pacientes em estágio inicial da doença. O tratamento utiliza uma abordagem inovadora que combina imunoterapia com terapia genética para remover placas amiloides do cérebro e regenerar conexões neurais. Os resultados foram tão promissores que o FDA concedeu status de terapia revolucionária ao medicamento, acelerando o processo de aprovação.",
+      "categories": ["health", "medicine", "research"],
+      "relevanceScore": 0.9,
+      "language": "ptBR"
+    },
+    {
+      "title": "Indústria automobilística acelera transição para veículos elétricos",
+      "source": "Auto Industry News",
+      "content": "As principais montadoras mundiais anunciaram um investimento conjunto de US$ 200 bilhões para acelerar a transição para veículos elétricos até 2030. A aliança inclui Toyota, Volkswagen, GM e Ford, que prometem lançar carros elétricos com preço inferior aos veículos a combustão até 2028. O investimento focará no desenvolvimento de baterias de nova geração, infraestrutura de carregamento e redução de custos de produção. Especialistas estimam que veículos elétricos representarão 80% das vendas globais até 2035, impulsionados por regulamentações ambientais mais rigorosas.",
+      "categories": ["automotive", "technology", "sustainability"],
+      "relevanceScore": 0.6,
+      "language": "ptBR"
+    },
+    {
+      "title": "Inteligência artificial detecta fraudes bancárias com precisão recorde",
+      "source": "FinTech Weekly",
+      "content": "O Banco Central do Brasil anunciou que um novo sistema de inteligência artificial desenvolvido em parceria com o Itaú alcançou uma precisão de 99.7% na detecção de fraudes bancárias. O sistema, chamado FraudGuard AI, analisa padrões comportamentais em tempo real e consegue identificar transações suspeitas em milissegundos. Desde sua implementação há seis meses, as perdas por fraude diminuíram 80%, economizando mais de R$ 500 milhões ao sistema bancário. A tecnologia será disponibilizada para outros bancos brasileiros nos próximos meses.",
+      "categories": ["fintech", "ai", "security", "brazil"],
+      "relevanceScore": 0.8,
+      "language": "ptBR"
+    },
+    {
+      "title": "Energia solar atinge marco histórico de eficiência energética",
+      "source": "Renewable Energy Today",
+      "content": "Pesquisadores do Instituto Nacional de Energia Renovável (NREL) dos EUA desenvolveram células fotovoltaicas com eficiência recorde de 47%. As novas células utilizam uma tecnologia chamada perovskita tandem, que combina múltiplas camadas para capturar diferentes comprimentos de onda da luz solar. Esta descoberta torna a energia solar significativamente mais competitiva que combustíveis fósseis em termos de custo por watt. A tecnologia deve estar comercialmente disponível até 2027 e pode revolucionar o setor energético global.",
+      "categories": ["energy", "solar", "technology", "research"],
+      "relevanceScore": 0.7,
+      "language": "EN"
+    },
+    {
+      "title": "Aplicativo de delivery implementa entrega por drones em São Paulo",
+      "source": "Tech São Paulo",
+      "content": "O iFood anunciou o início dos testes piloto de entrega por drones autônomos em bairros selecionados de São Paulo. Os drones, desenvolvidos em parceria com a empresa brasileira Speedbird Aero, podem carregar até 2kg e têm autonomia de 25km. O sistema utiliza inteligência artificial para navegação e evita obstáculos automaticamente. Os testes iniciais mostram que o tempo médio de entrega pode ser reduzido de 45 para 15 minutos. A ANAC (Agência Nacional de Aviação Civil) aprovou os testes que durarão seis meses em áreas específicas da capital paulista.",
+      "categories": ["delivery", "drones", "technology", "brazil"],
+      "relevanceScore": 0.5,
+      "language": "ptBR"
+    },
+    {
+      "title": "Vacina universal contra gripe mostra 95% de eficácia em testes",
+      "source": "Global Health News",
+      "content": "Um consórcio internacional de pesquisadores anunciou resultados extraordinários de uma vacina universal contra a gripe, que mostrou 95% de eficácia contra todas as cepas conhecidas de influenza. A vacina utiliza uma abordagem inovadora baseada em proteínas conservadas do vírus que não sofrem mutação. Os testes clínicos de fase 3 envolveram 50.000 voluntários em 15 países e mostraram que uma única dose pode fornecer proteção por até 10 anos. A OMS está avaliando os dados para aprovação de emergência, que pode ocorrer ainda em 2025.",
+      "categories": ["health", "vaccine", "research", "global"],
+      "relevanceScore": 0.3,
+      "language": "EN"
+    }
+  ]
+}
