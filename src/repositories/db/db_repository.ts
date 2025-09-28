@@ -1,21 +1,18 @@
 import { NewsRepository, CategoryModel, NewsWithCategoriesModel, NewsModel } from "../news_repository";
 import { News } from "../../entities/news_entity";
 import { Pool, PoolClient } from 'pg';
-import dotenv from 'dotenv';
-
-// Carregar variáveis de ambiente
-dotenv.config();
+import { env } from '../../env/index.js';
 
 export class DBRepository implements NewsRepository {
   private pool: Pool;
 
   constructor() {
     this.pool = new Pool({
-      host: process.env.PGHOST || 'localhost',
-      port: parseInt(process.env.PGPORT || '5432'),
-      user: process.env.PGUSER || 'newsletter',
-      password: process.env.PGPASSWORD || 'newsletter123',
-      database: process.env.PGDATABASE || 'newsletter_db',
+      host: env.PGHOST,
+      port: env.PGPORT,
+      user: env.PGUSER,
+      password: env.PGPASSWORD,
+      database: env.PGDATABASE,
       max: 20,
       connectionTimeoutMillis: 30000,
       idleTimeoutMillis: 30000,
