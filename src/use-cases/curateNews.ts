@@ -1,4 +1,7 @@
 import { News } from "../entities/news_entity";
+import { LlmRepository } from "../repositories/LLM_repository";
+import { GenerateSummaryUseCase } from "./generateSummary";
+import { env } from "../env/index.js";
 
 /**
  * Resultado da curadoria de notícias
@@ -29,10 +32,16 @@ export interface RejectedNews {
 /**
  * Use case para curadoria de notícias
  * Filtra notícias baseado em critérios de qualidade:
- * - relevanceScore deve ser >= 0.7
+ * - relevanceScore deve ser >= RELEVANCE_SCORE_THRESHOLD (configurável via env)
  * - language deve ser 'ptBR' ou 'EN'
+ * - Gera resumo automaticamente se aprovada E content > 300 caracteres
  */
 export class CurateNewsUseCase {
+  private summaryUseCase: GenerateSummaryUseCase;
+
+  constructor(private readonly llmRepository: LlmRepository) {
+    this.summaryUseCase = new GenerateSummaryUseCase(llmRepository);
+  }
   
   /**
    * Executa a curadoria das notícias
@@ -40,7 +49,7 @@ export class CurateNewsUseCase {
    * @returns Promise<CurationResult> Resultado da curadoria
    */
   async execute(newsArray: News[]): Promise<CurationResult> {
-    console.log(`🎯 Iniciando curadoria de ${newsArray.length} notícias...`);
+    console.log(`🎯 Iniciando curadoria de ${newsArray.length} notícias (threshold: ${env.RELEVANCE_SCORE_THRESHOLD})...`);
 
     const approvedNews: News[] = [];
     const rejectedNews: RejectedNews[] = [];
@@ -49,11 +58,37 @@ export class CurateNewsUseCase {
       const rejectionReasons = this.evaluateNews(news);
       
       if (rejectionReasons.length === 0) {
-        // Notícia aprovada
-        approvedNews.push(news);
-        console.log(`✅ Aprovada: "${news.title}" (Score: ${news.relevanceScore}, Lang: ${news.language})`);
+        // Notícia aprovada nos critérios - verificar se precisa gerar resumo
+        let processedNews = news;
+        
+        if (news.content.length > 300) {
+          console.log(`📝 Notícia aprovada com conteúdo longo (${news.content.length} chars), gerando resumo...`);
+          
+          try {
+            const summaryResult = await this.summaryUseCase.execute(news);
+            
+            if (summaryResult.success) {
+              // Criar nova notícia com resumo no lugar do conteúdo
+              processedNews = {
+                ...news,
+                content: summaryResult.summary
+              };
+              console.log(`✅ Resumo gerado: ${summaryResult.summary.length} caracteres`);
+            } else {
+              console.warn(`⚠️ Falha ao gerar resumo: ${summaryResult.error}`);
+              // Continua com o conteúdo original se falhar
+            }
+            
+          } catch (error) {
+            console.error(`❌ Erro ao gerar resumo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            // Continua com o conteúdo original se falhar
+          }
+        }
+        
+        approvedNews.push(processedNews);
+        console.log(`✅ Aprovada: "${processedNews.title}" (Score: ${processedNews.relevanceScore}, Lang: ${processedNews.language}, Content: ${processedNews.content.length} chars)`);
       } else {
-        // Notícia rejeitada
+        // Notícia rejeitada - não gera resumo
         rejectedNews.push({
           news,
           reasons: rejectionReasons
@@ -83,9 +118,9 @@ export class CurateNewsUseCase {
   private evaluateNews(news: News): string[] {
     const reasons: string[] = [];
 
-    // Verificar relevanceScore
-    if (news.relevanceScore < 0.7) {
-      reasons.push(`Score insuficiente (${news.relevanceScore} < 0.7)`);
+    // Verificar relevanceScore usando threshold configurável
+    if (news.relevanceScore < env.RELEVANCE_SCORE_THRESHOLD) {
+      reasons.push(`Score insuficiente (${news.relevanceScore} < ${env.RELEVANCE_SCORE_THRESHOLD})`);
     }
 
     // Verificar language

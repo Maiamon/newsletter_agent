@@ -16,6 +16,9 @@ const envSchema = z.object({
   // Gemini AI configuration
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   GEMINI_MODEL: z.string().default('models/gemini-2.5-flash'),
+  
+  // News curation configuration
+  RELEVANCE_SCORE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.7),
 });
 
 const _env = envSchema.safeParse(process.env);

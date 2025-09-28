@@ -2,6 +2,7 @@ import { JsonNewsDataRepository } from './repositories/json/json_news_data_repos
 import { LoadNewsFromSourceUseCase } from './use-cases/loadNewsFromSource';
 import { CurateNewsUseCase } from './use-cases/curateNews';
 import { DBRepository } from './repositories/db/db_repository';
+import { GoogleLlmRepository } from './repositories/gemini/google_gemini_repository';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -18,10 +19,11 @@ class NewsletterApp {
     try {
       // 1. Configurar repositórios e use cases
       const dbRepository = new DBRepository();
+      const llmRepository = new GoogleLlmRepository();
       const jsonFilePath = path.join(__dirname, 'data', 'source-data.json');
       const newsDataRepository = new JsonNewsDataRepository(jsonFilePath);
       const loadNewsUseCase = new LoadNewsFromSourceUseCase(newsDataRepository);
-      const curateNewsUseCase = new CurateNewsUseCase();
+      const curateNewsUseCase = new CurateNewsUseCase(llmRepository);
 
       // 2. Conectar ao banco de dados
       console.log('🔌 Conectando ao banco de dados...');
