@@ -3,6 +3,7 @@ import { LoadNewsFromSourceUseCase } from './use-cases/loadNewsFromSource';
 import { CurateNewsUseCase } from './use-cases/curateNews';
 import { DBRepository } from './repositories/db/db_repository';
 import { GoogleLlmRepository } from './repositories/gemini/google_gemini_repository';
+import { env } from './env/index.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,7 +21,12 @@ class NewsletterApp {
       // 1. Configurar repositórios e use cases
       const dbRepository = new DBRepository();
       const llmRepository = new GoogleLlmRepository();
-      const jsonFilePath = path.join(__dirname, 'data', 'source-data.json');
+      
+      // Usar path configurável via environment variable
+      const jsonFilePath = path.isAbsolute(env.SOURCE_DATA_PATH) 
+        ? env.SOURCE_DATA_PATH 
+        : path.join(__dirname, '..', env.SOURCE_DATA_PATH);
+        
       const newsDataRepository = new JsonNewsDataRepository(jsonFilePath);
       const loadNewsUseCase = new LoadNewsFromSourceUseCase(newsDataRepository);
       const curateNewsUseCase = new CurateNewsUseCase(llmRepository);
@@ -37,7 +43,8 @@ class NewsletterApp {
       console.log('✅ Conexão com banco estabelecida\n');
 
       // 3. Carregar notícias do arquivo JSON
-      console.log('📁 Carregando notícias do arquivo source-data.json...');
+      console.log(`📁 Carregando notícias do arquivo: ${path.basename(jsonFilePath)}...`);
+      console.log(`   📂 Path completo: ${jsonFilePath}`);
       const loadResult = await loadNewsUseCase.execute();
 
       if (loadResult.news.length === 0) {
