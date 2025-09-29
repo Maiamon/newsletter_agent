@@ -19,6 +19,7 @@ const envSchema = z.object({
   
   // News curation configuration
   RELEVANCE_SCORE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.7),
+  SUMMARY_MAX_LENGTH: z.coerce.number().min(50).max(1000).default(280),
 });
 
 const _env = envSchema.safeParse(process.env);

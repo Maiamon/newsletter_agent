@@ -34,7 +34,7 @@ export interface RejectedNews {
  * Filtra notícias baseado em critérios de qualidade:
  * - relevanceScore deve ser >= RELEVANCE_SCORE_THRESHOLD (configurável via env)
  * - language deve ser 'ptBR' ou 'EN'
- * - Gera resumo automaticamente se aprovada E content > 300 caracteres
+ * - Gera resumo automaticamente se aprovada E content > 200 caracteres
  */
 export class CurateNewsUseCase {
   private summaryUseCase: GenerateSummaryUseCase;
@@ -61,7 +61,7 @@ export class CurateNewsUseCase {
         // Notícia aprovada nos critérios - verificar se precisa gerar resumo
         let processedNews = news;
         
-        if (news.content.length > 300) {
+        if (news.content.length > 200) {
           console.log(`📝 Notícia aprovada com conteúdo longo (${news.content.length} chars), gerando resumo...`);
           
           try {

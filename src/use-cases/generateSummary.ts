@@ -1,5 +1,6 @@
 import { News } from "../entities/news_entity";
 import { LlmRepository } from "../repositories/LLM_repository";
+import { env } from "../env/index.js";
 
 /**
  * Resultado da geração de resumo
@@ -28,7 +29,7 @@ export interface GenerateSummaryResult {
 
 /**
  * Use case para gerar resumos de notícias usando LLM
- * Cria resumos concisos em menos de 300 caracteres
+ * Cria resumos concisos com tamanho configurável via SUMMARY_MAX_LENGTH
  */
 export class GenerateSummaryUseCase {
   
@@ -51,15 +52,16 @@ export class GenerateSummaryUseCase {
       // Gerar conteúdo usando LLM
       const summary = await this.llmRepository.generateContent(prompt);
       
-      // Validar tamanho do resumo
+      // Validar tamanho do resumo usando configuração
       const trimmedSummary = summary.trim();
+      const maxLength = env.SUMMARY_MAX_LENGTH;
       
-      if (trimmedSummary.length > 300) {
+      if (trimmedSummary.length > maxLength) {
         console.warn(`⚠️ Resumo muito longo (${trimmedSummary.length} caracteres), tentando encurtar...`);
         
         // Tentar gerar um resumo mais curto
         const shorterSummary = await this.generateShorterSummary(news, trimmedSummary);
-        const finalSummary = shorterSummary.length <= 300 ? shorterSummary : trimmedSummary.substring(0, 297) + '...';
+        const finalSummary = shorterSummary.length <= maxLength ? shorterSummary : trimmedSummary.substring(0, maxLength - 3) + '...';
         
         return this.createResult(news, finalSummary, true, startTime);
       }
@@ -113,9 +115,10 @@ export class GenerateSummaryUseCase {
    * Cria o prompt otimizado para gerar resumo
    */
   private createSummaryPrompt(news: News): string {
+    const maxLength = env.SUMMARY_MAX_LENGTH;
     return `Você é um especialista em criação de resumos jornalísticos concisos e impactantes.
 
-TAREFA: Crie um resumo da notícia abaixo em MÁXIMO 280 caracteres.
+TAREFA: Crie um resumo da notícia abaixo em MÁXIMO ${maxLength} caracteres.
 
 REGRAS IMPORTANTES:
 - Use linguagem clara e objetiva
@@ -128,27 +131,28 @@ NOTÍCIA:
 Título: ${news.title}
 Conteúdo: ${news.content}
 
-RESUMO (máximo 280 caracteres):`;
+RESUMO (máximo ${maxLength} caracteres):`;
   }
 
   /**
    * Tenta gerar um resumo mais curto quando o primeiro excede o limite
    */
   private async generateShorterSummary(news: News, originalSummary: string): Promise<string> {
-    const prompt = `Você recebeu este resumo mas ele está muito longo. Encurte-o para MÁXIMO 280 caracteres mantendo as informações essenciais:
+    const maxLength = env.SUMMARY_MAX_LENGTH;
+    const prompt = `Você recebeu este resumo mas ele está muito longo. Encurte-o para MÁXIMO ${maxLength} caracteres mantendo as informações essenciais:
 
 RESUMO ORIGINAL: ${originalSummary}
 
 TÍTULO DA NOTÍCIA: ${news.title}
 
-RESUMO ENCURTADO (máximo 280 caracteres):`;
+RESUMO ENCURTADO (máximo ${maxLength} caracteres):`;
 
     try {
       const shorterSummary = await this.llmRepository.generateContent(prompt);
       return shorterSummary.trim();
     } catch (error) {
       console.warn('⚠️ Erro ao encurtar resumo, usando versão truncada');
-      return originalSummary.substring(0, 297) + '...';
+      return originalSummary.substring(0, maxLength - 3) + '...';
     }
   }
 
