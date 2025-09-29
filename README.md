@@ -2,38 +2,14 @@
 
 Sistema automatizado de curadoria de notícias com IA que processa fontes de dados JSON, aplica filtros de qualidade e gera resumos inteligentes antes de inserir no banco de dados.
 
-## 🧠 Regras de Negócio
+## 🏗️ Stack Tecnológica
 
-### 📋 Processo de Curadoria
-O sistema implementa um pipeline inteligente de processamento de notícias:
+Este projeto foi desenvolvido em **Node.js com TypeScript** para manter compatibilidade total com o ecossistema do Newsletter:
+- **Backend**: Node.js + TypeScript + Prisma + PostgreSQL
+- **Frontend**: React + TypeScript + Vite  
+- **Agent**: Node.js + TypeScript (este sistema de curadoria)
 
-1. **📁 Carregamento**: Lê notícias de arquivo JSON configurável
-2. **🎯 Curadoria**: Aplica filtros de qualidade baseados em:
-   - **Score de Relevância**: 0.0 a 1.0 (configurável via `RELEVANCE_SCORE_THRESHOLD`)
-   - **Idioma**: Apenas `ptBR` e `EN` são aceitos
-3. **📝 Resumo Inteligente**: Para conteúdos > 200 caracteres, gera resumo via Gemini AI
-4. **💾 Persistência**: Salva no Banco de dados com conteúdo original + resumo
-
-### 📊 Formato do JSON de Entrada
-```json
-{
-  "news": [
-    {
-      "title": "Título da Notícia",
-      "source": "Fonte da Notícia",
-      "content": "Conteúdo completo da notícia...",
-      "categories": ["tech", "ai", "health"],
-      "relevanceScore": 0.8,
-      "language": "ptBR"
-    }
-  ]
-}
-```
-
-### ⚙️ Configurações via Environment
-- `RELEVANCE_SCORE_THRESHOLD`: Score mínimo para aprovação (padrão: 0.7)
-- `SUMMARY_MAX_LENGTH`: Tamanho máximo do resumo gerado (padrão: 180)
-- `SOURCE_DATA_PATH`: Caminho para o arquivo JSON de entrada
+A escolha do TypeScript garante **type safety**, **melhor DX** e **consistência** em todo o stack, facilitando manutenção e evolução do sistema.
 
 ## 🚀 Instalação e Configuração
 
@@ -88,7 +64,40 @@ npm run app
 npm run dev
 ```
 
-## 🔄 Fluxo de Processamento
+## 🧠 Regras de Negócio
+
+### 📋 Processo de Curadoria
+O sistema implementa um pipeline inteligente de processamento de notícias:
+
+1. **📁 Carregamento**: Lê notícias de arquivo JSON configurável
+2. **🎯 Curadoria**: Aplica filtros de qualidade baseados em:
+   - **Score de Relevância**: 0.0 a 1.0 (configurável via `RELEVANCE_SCORE_THRESHOLD`)
+   - **Idioma**: Apenas `ptBR` e `EN` são aceitos
+3. **📝 Resumo Inteligente**: Para conteúdos > 200 caracteres, gera resumo via Gemini AI
+4. **💾 Persistência**: Salva no Banco de dados com conteúdo original + resumo
+
+### 📊 Formato do JSON de Entrada
+```json
+{
+  "news": [
+    {
+      "title": "Título da Notícia",
+      "source": "Fonte da Notícia",
+      "content": "Conteúdo completo da notícia...",
+      "categories": ["tech", "ai", "health"],
+      "relevanceScore": 0.8,
+      "language": "ptBR"
+    }
+  ]
+}
+```
+
+### ⚙️ Configurações via Environment
+- `RELEVANCE_SCORE_THRESHOLD`: Score mínimo para aprovação (padrão: 0.7)
+- `SUMMARY_MAX_LENGTH`: Tamanho máximo do resumo gerado (padrão: 180)
+- `SOURCE_DATA_PATH`: Caminho para o arquivo JSON de entrada
+
+##  Fluxo de Processamento
 
 ```mermaid
 graph TD
@@ -164,10 +173,17 @@ npm run build
 
 ## 🌐 Integração com o Projeto
 
-Este agente faz parte do ecossistema do Newsletter:
-- **Backend**: API REST Node + Vite + Prisma + PostgreSQL
-- **Frontend**: REACT + Vite
-- **Agent**: Este sistema de curadoria inteligente
+Este agente faz parte do **ecossistema TypeScript** do Newsletter, garantindo compatibilidade e consistência:
+
+- **Backend**: Node.js + TypeScript + Prisma + PostgreSQL
+- **Frontend**: React + TypeScript + Vite
+- **Agent**: Node.js + TypeScript + IA (este sistema de curadoria)
+
+### 🔗 Benefícios da Integração
+- **Type Safety**: Interfaces compartilhadas entre todos os componentes
+- **DX Consistente**: Mesmas ferramentas e padrões em todo o stack
+- **Facilidade de Deploy**: Mesmo ambiente Node.js para backend e agent
+- **Shared Types**: Entities e contratos reutilizados entre projetos
 
 ## 🚀 Roadmap e Melhorias Futuras
 
