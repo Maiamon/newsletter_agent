@@ -68,15 +68,15 @@ export class CurateNewsUseCase {
             const summaryResult = await this.summaryUseCase.execute(news);
             
             if (summaryResult.success) {
-              // Criar nova notícia com resumo no lugar do conteúdo
+              // Criar nova notícia mantendo content original e adicionando summary
               processedNews = {
                 ...news,
-                content: summaryResult.summary
+                summary: summaryResult.summary
               };
-              console.log(`✅ Resumo gerado: ${summaryResult.summary.length} caracteres`);
+              console.log(`✅ Summary adicionado: ${summaryResult.summary.length} caracteres`);
             } else {
               console.warn(`⚠️ Falha ao gerar resumo: ${summaryResult.error}`);
-              // Continua com o conteúdo original se falhar
+              // Continua sem summary se falhar
             }
             
           } catch (error) {
@@ -86,7 +86,8 @@ export class CurateNewsUseCase {
         }
         
         approvedNews.push(processedNews);
-        console.log(`✅ Aprovada: "${processedNews.title}" (Score: ${processedNews.relevanceScore}, Lang: ${processedNews.language}, Content: ${processedNews.content.length} chars)`);
+        const summaryInfo = processedNews.summary ? `, Summary: ${processedNews.summary.length} chars` : '';
+        console.log(`✅ Aprovada: "${processedNews.title}" (Score: ${processedNews.relevanceScore}, Lang: ${processedNews.language}, Content: ${processedNews.content.length} chars${summaryInfo})`);
       } else {
         // Notícia rejeitada - não gera resumo
         rejectedNews.push({

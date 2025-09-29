@@ -52,15 +52,16 @@ export class DBRepository implements NewsRepository {
 
       // Inserir notícia usando campos do schema Prisma
       const newsQuery = `
-        INSERT INTO news (title, content, source, "publishedAt")
-        VALUES ($1, $2, $3, NOW())
-        RETURNING id, title, content, source, "publishedAt"
+        INSERT INTO news (title, content, source, summary, "publishedAt")
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING id, title, content, source, summary, "publishedAt"
       `;
       
       const newsResult = await client.query(newsQuery, [
         newsData.title,
         newsData.content,
-        newsData.source
+        newsData.source,
+        newsData.summary || null
       ]);
 
       const insertedNews = newsResult.rows[0];
@@ -89,6 +90,7 @@ export class DBRepository implements NewsRepository {
         title: insertedNews.title,
         content: insertedNews.content,
         source: insertedNews.source,
+        summary: insertedNews.summary,
         categories: newsData.categories || [],
         relevanceScore: insertedNews.relevance_score,
         language: insertedNews.language
